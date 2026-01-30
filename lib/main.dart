@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/screens/dashboard_screen.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
+import 'package:student_academic_assistant/utils/session_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+  ChangeNotifierProvider(
+    create: (_) => SessionProvider(),
+    child: const MyApp(),
+  ),
+);
+
 }
 
 class MyApp extends StatelessWidget {
