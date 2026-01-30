@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/models/session.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:student_academic_assistant/utils/session_provider.dart';
 
 /// Dashboard Screen - Team Lead's responsibility
 ///
