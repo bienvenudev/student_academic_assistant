@@ -105,7 +105,14 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             const Spacer(),
             ElevatedButton(
               onPressed: () {
-                if (_titleController.text.isEmpty) return;
+                if (_titleController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a session title.'),
+                    ),
+                  );
+                  return;
+                }
 
                 // Validate times when both are chosen
                 if (_startTime != null && _endTime != null) {
