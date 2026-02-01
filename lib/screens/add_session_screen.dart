@@ -16,6 +16,30 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   final _locationController = TextEditingController();
   SessionType _type = SessionType.classSession;
 
+  // Time picker state
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
+
+  String _timeToString(TimeOfDay t) {
+    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _pickStartTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _startTime ?? const TimeOfDay(hour: 10, minute: 0),
+    );
+    if (picked != null) setState(() => _startTime = picked);
+  }
+
+  Future<void> _pickEndTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _endTime ?? const TimeOfDay(hour: 12, minute: 0),
+    );
+    if (picked != null) setState(() => _endTime = picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,6 +57,36 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
               decoration: const InputDecoration(labelText: 'Location'),
             ),
             const SizedBox(height: 12),
+
+            // Start/End time pickers
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: _pickStartTime,
+                    child: InputDecorator(
+                      decoration: const InputDecoration(labelText: 'Start Time'),
+                      child: Text(_startTime == null
+                          ? 'Select time'
+                          : _timeToString(_startTime!)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: InkWell(
+                    onTap: _pickEndTime,
+                    child: InputDecorator(
+                      decoration: const InputDecoration(labelText: 'End Time'),
+                      child: Text(
+                          _endTime == null ? 'Select time' : _timeToString(_endTime!)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
             DropdownButton<SessionType>(
               value: _type,
               items: SessionType.values.map((type) {
@@ -47,19 +101,34 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                 });
               },
             ),
+
             const Spacer(),
             ElevatedButton(
               onPressed: () {
                 if (_titleController.text.isEmpty) return;
 
-                Provider.of<SessionProvider>(context, listen: false)
-                    .addSession(
+                // Validate times when both are chosen
+                if (_startTime != null && _endTime != null) {
+                  final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+                  final endMinutes = _endTime!.hour * 60 + _endTime!.minute;
+                  if (endMinutes <= startMinutes) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('End time must be after start time')),
+                    );
+                    return;
+                  }
+                }
+
+                final startStr = _startTime != null ? _timeToString(_startTime!) : '10:00';
+                final endStr = _endTime != null ? _timeToString(_endTime!) : '12:00';
+
+                Provider.of<SessionProvider>(context, listen: false).addSession(
                   Session(
                     id: DateTime.now().toString(),
                     title: _titleController.text,
                     date: DateTime.now(),
-                    startTime: '10:00',
-                    endTime: '12:00',
+                    startTime: startStr,
+                    endTime: endStr,
                     location: _locationController.text,
                     sessionType: _type,
                   ),
