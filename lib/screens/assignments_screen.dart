@@ -4,14 +4,15 @@ import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
 
 class AssignmentsScreen extends StatefulWidget {
-  const AssignmentsScreen({super.key});
-
+ final List<Assignment> assignments;
+  const AssignmentsScreen({super.key, required this.assignments});
+  
   @override
   State<AssignmentsScreen> createState() => _AssignmentsScreenState();
 }
 
 class _AssignmentsScreenState extends State<AssignmentsScreen> {
-  List<Assignment> assignments = [];
+  widget.assignments;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _courseController = TextEditingController();
   DateTime? _selectedDueDate;
