@@ -13,8 +13,9 @@ import 'package:student_academic_assistant/utils/constants.dart';
 /// - Overall attendance percentage with warning if < 75%
 /// - Summary counts of pending assignments
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
-
+  final List<Assignment> assignments;
+  const DashboardScreen({super.key, required this.assignments});
+  
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
