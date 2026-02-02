@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:student_academic_assistant/screens/dashboard_screen.dart';
 import 'package:student_academic_assistant/screens/assignments_screen.dart';
+import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
 
 void main() {
@@ -68,12 +69,19 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
+  List<Assignment> assignments = [];
+  
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const AssignmentsScreen(), 
+@override
+void initState() {
+  super.initState();
+  _screens = [
+    DashboardScreen(assignments: assignments),
+    AssignmentsScreen(assignments: assignments),
     const PlaceholderScreen(title: 'Schedule'),
   ];
+}
 
   @override
   Widget build(BuildContext context) {
