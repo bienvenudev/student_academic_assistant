@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/assignment.dart';
 
 class AssignmentsScreen extends StatefulWidget {
@@ -10,186 +11,264 @@ class AssignmentsScreen extends StatefulWidget {
 
 class _AssignmentsScreenState extends State<AssignmentsScreen> {
   List<Assignment> assignments = [];
-  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _courseController = TextEditingController();
+  DateTime? _selectedDueDate;
+  String _selectedPriority = 'Medium';
 
-  // Temporary form values
-  String _title = '';
-  String _course = '';
-  DateTime? _dueDate;
-  String _priority = 'Medium';
-  int? _editingIndex;
+  @override
+  void initState() {
+    super.initState();
+    _loadAssignments();
+  }
 
-  /// Open form to add/edit assignment
-  void _showAssignmentForm({Assignment? assignment, int? index}) {
-    if (assignment != null) {
-      _title = assignment.title;
-      _course = assignment.course;
-      _dueDate = assignment.dueDate;
-      _priority = assignment.priority.isEmpty ? 'Medium' : assignment.priority;
-      _editingIndex = index;
-    } else {
-      _title = '';
-      _course = '';
-      _dueDate = null;
-      _priority = 'Medium';
-      _editingIndex = null;
+  void _loadAssignments() {
+    // Load from shared_preferences or database
+    // For now, using mock data
+    setState(() {
+      assignments = [
+        Assignment(
+          id: '1',
+          title: 'Math Homework',
+          dueDate: DateTime.now().add(const Duration(days: 3)),
+          course: 'Mathematics',
+          priority: 'High',
+        ),
+        Assignment(
+          id: '2',
+          title: 'Physics Lab Report',
+          dueDate: DateTime.now().add(const Duration(days: 5)),
+          course: 'Physics',
+          priority: 'Medium',
+        ),
+      ]..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+    });
+  }
+
+  Future<void> _addAssignment() async {
+    if (_titleController.text.isEmpty || _selectedDueDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Title and due date are required')),
+      );
+      return;
     }
 
-    showDialog(
+    final newAssignment = Assignment(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: _titleController.text,
+      dueDate: _selectedDueDate!,
+      course: _courseController.text,
+      priority: _selectedPriority,
+    );
+
+    setState(() {
+      assignments.add(newAssignment);
+      assignments.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+    });
+
+    // Clear form
+    _titleController.clear();
+    _courseController.clear();
+    _selectedDueDate = null;
+    _selectedPriority = 'Medium';
+
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _showAddAssignmentDialog() async {
+    return showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(assignment != null ? 'Edit Assignment' : 'New Assignment'),
-        content: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  initialValue: _title,
-                  decoration: const InputDecoration(labelText: 'Title'),
-                  validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                  onSaved: (val) => _title = val!,
-                ),
-                TextFormField(
-                  initialValue: _course,
-                  decoration: const InputDecoration(labelText: 'Course'),
-                  validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                  onSaved: (val) => _course = val!,
-                ),
-                const SizedBox(height: 10),
-                Row(
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Add New Assignment'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      _dueDate == null
-                          ? 'No Date Chosen'
-                          : 'Due: ${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Assignment Title*',
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                    TextButton(
-                      onPressed: () async {
-                        DateTime? picked = await showDatePicker(
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _courseController,
+                      decoration: const InputDecoration(
+                        labelText: 'Course Name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ListTile(
+                      title: Text(
+                        _selectedDueDate == null
+                            ? 'Select Due Date*'
+                            : 'Due Date: ${DateFormat('MMM d, yyyy').format(_selectedDueDate!)}',
+                      ),
+                      trailing: const Icon(Icons.calendar_today),
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: _dueDate ?? DateTime.now(),
+                          initialDate: DateTime.now(),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime(2100),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
                         );
-                        if (picked != null) setState(() => _dueDate = picked);
+                        if (pickedDate != null) {
+                          setState(() {
+                            _selectedDueDate = pickedDate;
+                          });
+                        }
                       },
-                      child: const Text('Pick Date'),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedPriority,
+                      decoration: const InputDecoration(
+                        labelText: 'Priority',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ['High', 'Medium', 'Low']
+                          .map((priority) => DropdownMenuItem(
+                                value: priority,
+                                child: Text(priority),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPriority = value!;
+                        });
+                      },
                     ),
                   ],
                 ),
-                DropdownButtonFormField(
-                  value: _priority,
-                  items: ['High', 'Medium', 'Low']
-                      .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                      .toList(),
-                  onChanged: (val) => setState(() => _priority = val!),
-                  decoration: const InputDecoration(labelText: 'Priority'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: _addAssignment,
+                  child: const Text('Add'),
                 ),
               ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate() && _dueDate != null) {
-                _formKey.currentState!.save();
-                setState(() {
-                  if (_editingIndex != null) {
-                    // Edit existing
-                    assignments[_editingIndex!] = assignments[_editingIndex!].copyWith(
-                      title: _title,
-                      course: _course,
-                      dueDate: _dueDate,
-                      priority: _priority,
-                    );
-                  } else {
-                    // Add new
-                    assignments.add(Assignment(
-                      title: _title,
-                      course: _course,
-                      dueDate: _dueDate!,
-                      priority: _priority,
-                    ));
-                  }
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
+  }
+
+  void _toggleAssignmentCompletion(String id) {
+    setState(() {
+      final index = assignments.indexWhere((a) => a.id == id);
+      if (index != -1) {
+        assignments[index].isCompleted = !assignments[index].isCompleted;
+      }
+    });
+  }
+
+  void _deleteAssignment(String id) {
+    setState(() {
+      assignments.removeWhere((a) => a.id == id);
+    });
+  }
+
+  Color _getPriorityColor(String priority) {
+    switch (priority) {
+      case 'High':
+        return Colors.red;
+      case 'Medium':
+        return Colors.orange;
+      case 'Low':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Sort assignments by due date
-    assignments.sort((a, b) => a.dueDate.compareTo(b.dueDate));
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Assignments')),
+      appBar: AppBar(
+        title: const Text('Assignments'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddAssignmentDialog,
+          ),
+        ],
+      ),
       body: assignments.isEmpty
-          ? const Center(child: Text('No assignments yet'))
+          ? const Center(
+              child: Text('No assignments yet. Add one to get started!'),
+            )
           : ListView.builder(
               itemCount: assignments.length,
               itemBuilder: (context, index) {
                 final assignment = assignments[index];
-                Color priorityColor;
-                switch (assignment.priority) {
-                  case 'High':
-                    priorityColor = Colors.red;
-                    break;
-                  case 'Medium':
-                    priorityColor = Colors.orange;
-                    break;
-                  default:
-                    priorityColor = Colors.green;
-                }
+                final daysLeft =
+                    assignment.dueDate.difference(DateTime.now()).inDays;
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                  child: ListTile(
-                    leading: Checkbox(
-                      value: assignment.isCompleted,
-                      onChanged: (val) => setState(() => assignments[index] =
-                          assignment.copyWith(isCompleted: val)),
+                return Dismissible(
+                  key: Key(assignment.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  onDismissed: (_) => _deleteAssignment(assignment.id),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
                     ),
-                    title: Text(
-                      assignment.title,
-                      style: TextStyle(
-                        decoration: assignment.isCompleted ? TextDecoration.lineThrough : null,
+                    child: ListTile(
+                      leading: Checkbox(
+                        value: assignment.isCompleted,
+                        onChanged: (_) =>
+                            _toggleAssignmentCompletion(assignment.id),
                       ),
-                    ),
-                    subtitle: Text(
-                      '${assignment.course} • Due: ${assignment.dueDate.day}/${assignment.dueDate.month}/${assignment.dueDate.year}',
-                      style: TextStyle(color: priorityColor),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showAssignmentForm(
-                              assignment: assignment, index: index),
+                      title: Text(
+                        assignment.title,
+                        style: TextStyle(
+                          decoration: assignment.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => setState(() => assignments.removeAt(index)),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(assignment.course),
+                          Text(
+                            'Due: ${DateFormat('MMM d, yyyy').format(assignment.dueDate)}',
+                            style: TextStyle(
+                              color: daysLeft <= 2 ? Colors.red : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: Chip(
+                        label: Text(
+                          assignment.priority,
+                          style: const TextStyle(color: Colors.white),
                         ),
-                      ],
+                        backgroundColor: _getPriorityColor(assignment.priority),
+                      ),
                     ),
                   ),
                 );
               },
             ),
       floatingActionButton: FloatingActionButton(
+        onPressed: _showAddAssignmentDialog,
         child: const Icon(Icons.add),
-        onPressed: () => _showAssignmentForm(),
       ),
     );
   }
