@@ -23,8 +23,6 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
   }
 
   void _loadAssignments() {
-    // Load from shared_preferences or database
-    // For now, using mock data
     setState(() {
       assignments = [
         Assignment(
