@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:student_academic_assistant/screens/dashboard_screen.dart';
+import 'package:student_academic_assistant/screens/assignments_screen.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
 
 void main() {
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: AppColors.primaryPurple,
           secondary: AppColors.fuchsiaPink,
-          error: AppColors.aluOrange, // For warnings (attendance < 75%)
+          error: AppColors.aluOrange,
         ),
 
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -68,11 +69,9 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  // Screens for each tab
-  // TODO: Replace placeholder screens when teammates implement them
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const PlaceholderScreen(title: 'Assignments'),
+    const AssignmentsScreen(), 
     const PlaceholderScreen(title: 'Schedule'),
   ];
 
@@ -106,9 +105,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-/// Temporary placeholder screen for tabs not yet implemented by teammates
-/// This will be replaced with AssignmentsScreen
-/// This will be replaced with ScheduleScreen
+/// Temporary placeholder screen for tabs not yet implemented 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
 
