@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           unselectedItemColor: Colors.white70,
           type: BottomNavigationBarType.fixed,
         ),
-        cardTheme: const CardThemeData(
+        cardTheme: const CardTheme(
           color: AppColors.cardWhite,
           elevation: 2,
           shape: RoundedRectangleBorder(
