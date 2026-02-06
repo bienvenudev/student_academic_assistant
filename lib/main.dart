@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/screens/dashboard_screen.dart';
+import 'package:student_academic_assistant/screens/schedule_screen.dart';
 import 'package:student_academic_assistant/screens/assignments_screen.dart';
 import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
+import 'package:student_academic_assistant/utils/session_provider.dart';
+import 'package:student_academic_assistant/services/storage_service.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService().init();
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => SessionProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -62,37 +74,60 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
-  final List<Assignment> assignments = [];
+  List<Assignment> assignments = [];
+  bool _isLoading = true;
 
-  // Callback to rebuild the dashboard when assignments change
-  void _refreshDashboard() {
-    setState(() {});
+  @override
+  void initState() {
+    super.initState();
+    _loadAssignments();
+  }
+
+  Future<void> _loadAssignments() async {
+    final loadedAssignments = await StorageService().loadAssignments();
+    setState(() {
+      assignments = loadedAssignments;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _refreshDashboard() async {
+    await _loadAssignments();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Build screens here to pass the updated callback every time
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final List<Widget> screens = [
       DashboardScreen(assignments: assignments),
       AssignmentsScreen(
         assignments: assignments,
         onAssignmentsChanged: _refreshDashboard,
       ),
-      const PlaceholderScreen(title: 'Schedule'),
+      const ScheduleScreen(),
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Assignments'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Schedule'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment),
+            label: 'Assignments',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Schedule',
+          ),
         ],
       ),
     );
@@ -112,11 +147,18 @@ class PlaceholderScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction, size: 64, color: AppColors.primaryPurple.withOpacity(0.5)),
+            Icon(
+              Icons.construction,
+              size: 64,
+              color: AppColors.primaryPurple.withOpacity(0.5),
+            ),
             const SizedBox(height: 16),
             Text('$title Screen', style: AppTextStyles.heading2),
             const SizedBox(height: 8),
-            Text('This screen will be implemented later', style: AppTextStyles.caption),
+            Text(
+              'This screen will be implemented later',
+              style: AppTextStyles.caption,
+            ),
           ],
         ),
       ),

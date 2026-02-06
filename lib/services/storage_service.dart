@@ -15,7 +15,6 @@ class StorageService {
   static const String _kAssignmentsKey = 'assignments';
   static const String _kSessionsKey = 'sessions';
 
-  /// Must be called once before using any load/save methods
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     _initialized = true;

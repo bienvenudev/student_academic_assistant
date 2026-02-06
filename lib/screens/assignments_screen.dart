@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
+import 'package:student_academic_assistant/services/storage_service.dart';
 
 class AssignmentsScreen extends StatefulWidget {
   final List<Assignment> assignments;
-  final VoidCallback?
-  onAssignmentsChanged; // Callback to notify parent of changes
+  final VoidCallback? onAssignmentsChanged;
 
   const AssignmentsScreen({
     super.key,
@@ -134,7 +134,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     _clearForm();
   }
 
-  void _validateAndSaveAssignment() {
+  void _validateAndSaveAssignment() async {
     final title = _titleController.text.trim();
     final course = _courseController.text.trim();
 
@@ -165,12 +165,13 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       _sortAssignments();
     });
 
+    await StorageService().saveAssignments(widget.assignments);
     widget.onAssignmentsChanged?.call();
     _clearForm();
     Navigator.pop(context);
   }
 
-  void _toggleAssignmentCompletion(String id) {
+  void _toggleAssignmentCompletion(String id) async {
     setState(() {
       final index = widget.assignments.indexWhere((a) => a.id == id);
       if (index != -1) {
@@ -178,9 +179,10 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
           isCompleted: !widget.assignments[index].isCompleted,
         );
         _sortAssignments();
-        widget.onAssignmentsChanged?.call();
       }
     });
+    await StorageService().saveAssignments(widget.assignments);
+    widget.onAssignmentsChanged?.call();
   }
 
   void _confirmDelete(String id) {
@@ -206,10 +208,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     );
   }
 
-  void _deleteAssignment(String id) {
+  void _deleteAssignment(String id) async {
     setState(() {
       widget.assignments.removeWhere((a) => a.id == id);
     });
+    await StorageService().saveAssignments(widget.assignments);
     widget.onAssignmentsChanged?.call();
   }
 

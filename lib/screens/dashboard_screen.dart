@@ -3,31 +3,24 @@ import 'package:intl/intl.dart';
 import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/models/session.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:student_academic_assistant/utils/session_provider.dart';
 
-/// Dashboard Screen - Team Lead's responsibility
-///
-/// Displays:
-/// - Today's date and current academic week
-/// - Today's scheduled sessions
-/// - Assignments due within 7 days
-/// - Overall attendance percentage with warning if < 75%
-/// - Summary counts of pending assignments
 class DashboardScreen extends StatefulWidget {
   final List<Assignment> assignments;
   const DashboardScreen({super.key, required this.assignments});
-  
+
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // TODO: These will be populated by Member 5's Storage Service
-  // For now, using empty lists for testing
-  List<Assignment> assignments = [];
-  List<Session> sessions = [];
-
   @override
   Widget build(BuildContext context) {
+    final sessionProvider = Provider.of<SessionProvider>(context);
+    final assignments = widget.assignments;
+    final sessions = sessionProvider.sessions;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
       body: SingleChildScrollView(
@@ -37,20 +30,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             _buildDateAndWeekCard(),
             const SizedBox(height: 16),
-            _buildAttendanceCard(),
+            _buildAttendanceCard(sessions),
             const SizedBox(height: 16),
-            _buildPendingAssignmentsCard(),
+            _buildPendingAssignmentsCard(assignments),
             const SizedBox(height: 16),
-            _buildTodaysSessionsSection(),
+            _buildTodaysSessionsSection(sessions),
             const SizedBox(height: 16),
-            _buildUpcomingAssignmentsSection(),
+            _buildUpcomingAssignmentsSection(assignments),
           ],
         ),
       ),
     );
   }
 
-  /// Card showing today's date and current academic week
   Widget _buildDateAndWeekCard() {
     final now = DateTime.now();
     final formattedDate = DateFormat('EEEE, MMMM d, y').format(now);
@@ -96,9 +88,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Card showing attendance percentage with warning indicator
-  Widget _buildAttendanceCard() {
-    final attendancePercentage = _calculateAttendancePercentage();
+  Widget _buildAttendanceCard(List<Session> sessions) {
+    final attendancePercentage = _calculateAttendancePercentage(sessions);
     final isLowAttendance = attendancePercentage < 75;
 
     return Card(
@@ -157,8 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Card showing summary of pending assignments
-  Widget _buildPendingAssignmentsCard() {
+  Widget _buildPendingAssignmentsCard(List<Assignment> assignments) {
     final pendingCount = assignments.where((a) => !a.isCompleted).length;
     final overdueCount = assignments.where((a) => a.isOverdue()).length;
 
@@ -210,8 +200,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Section showing today's scheduled sessions
-  Widget _buildTodaysSessionsSection() {
+  Widget _buildTodaysSessionsSection(List<Session> sessions) {
     final todaysSessions = sessions.where((s) => s.isToday()).toList();
 
     return Column(
@@ -237,8 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Section showing assignments due within 7 days
-  Widget _buildUpcomingAssignmentsSection() {
+  Widget _buildUpcomingAssignmentsSection(List<Assignment> assignments) {
     final upcomingAssignments =
         assignments
             .where((a) => a.isDueWithinSevenDays() && !a.isCompleted)
@@ -348,8 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return (difference / 7).floor() + 1;
   }
 
-  /// Calculate overall attendance percentage
-  double _calculateAttendancePercentage() {
+  double _calculateAttendancePercentage(List<Session> sessions) {
     if (sessions.isEmpty) {
       return 100.0; // Default to 100% if no sessions
     }
