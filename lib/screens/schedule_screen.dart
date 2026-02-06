@@ -4,8 +4,21 @@ import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/utils/session_provider.dart';
 import 'package:student_academic_assistant/screens/add_session_screen.dart';
 
-class ScheduleScreen extends StatelessWidget {
+class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
+
+  @override
+  State<ScheduleScreen> createState() => _ScheduleScreenState();
+}
+
+class _ScheduleScreenState extends State<ScheduleScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SessionProvider>(context, listen: false).loadSessions();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

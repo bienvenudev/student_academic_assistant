@@ -6,8 +6,12 @@ import 'package:student_academic_assistant/screens/assignments_screen.dart';
 import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
 import 'package:student_academic_assistant/utils/session_provider.dart';
+import 'package:student_academic_assistant/services/storage_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService().init();
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => SessionProvider(),
@@ -70,14 +74,33 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
-  final List<Assignment> assignments = [];
+  List<Assignment> assignments = [];
+  bool _isLoading = true;
 
-  void _refreshDashboard() {
-    setState(() {});
+  @override
+  void initState() {
+    super.initState();
+    _loadAssignments();
+  }
+
+  Future<void> _loadAssignments() async {
+    final loadedAssignments = await StorageService().loadAssignments();
+    setState(() {
+      assignments = loadedAssignments;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _refreshDashboard() async {
+    await _loadAssignments();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final List<Widget> screens = [
       DashboardScreen(assignments: assignments),
       AssignmentsScreen(
