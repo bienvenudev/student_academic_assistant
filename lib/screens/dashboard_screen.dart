@@ -6,7 +6,7 @@ import 'package:student_academic_assistant/utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/utils/session_provider.dart';
 
-/// Dashboard Screen - Team Lead's responsibility
+/// Dashboard Screen
 ///
 /// Displays:
 /// - Today's date and current academic week
@@ -15,8 +15,9 @@ import 'package:student_academic_assistant/utils/session_provider.dart';
 /// - Overall attendance percentage with warning if < 75%
 /// - Summary counts of pending assignments
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
-
+  final List<Assignment> assignments;
+  const DashboardScreen({super.key, required this.assignments});
+  
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
