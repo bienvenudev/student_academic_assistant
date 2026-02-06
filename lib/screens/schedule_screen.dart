@@ -4,14 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/utils/session_provider.dart';
 import 'package:student_academic_assistant/screens/add_session_screen.dart';
 
-/// Schedule Screen - Member 3 (Schedule Specialist) will implement this
-///
-/// TODO for Member 3:
-/// - Display weekly calendar view of sessions
-/// - Show session cards with title, time, location, type
-/// - Add Present/Absent toggle button for each session
-/// - Add FloatingActionButton to navigate to Add Session form
-/// - Filter to show today's sessions at the top
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
 
@@ -54,26 +46,75 @@ class ScheduleScreen extends StatelessWidget {
                   leading: session.isPresent == null
                       ? const Icon(Icons.help_outline)
                       : session.isPresent!
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : const Icon(Icons.cancel, color: Colors.red),
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: AppColors.successGreen,
+                        )
+                      : const Icon(Icons.cancel, color: AppColors.warningRed),
                   title: Text(session.title),
                   subtitle: Text(
                     '${session.startTime} - ${session.endTime}\n${session.location}',
                   ),
                   isThreeLine: true,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddSessionScreen(sessionToEdit: session),
+                      ),
+                    );
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
+                        icon: const Icon(
+                          Icons.check,
+                          color: AppColors.successGreen,
+                        ),
+                        tooltip: 'Mark as present',
                         onPressed: () {
                           sessionProvider.markAttendance(session.id, true);
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColors.warningRed,
+                        ),
+                        tooltip: 'Mark as absent',
                         onPressed: () {
                           sessionProvider.markAttendance(session.id, false);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        tooltip: 'Delete session',
+                        color: AppColors.warningRed,
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Delete Session?'),
+                              content: const Text(
+                                'Are you sure you want to delete this session?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    sessionProvider.removeSession(session.id);
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ],

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/utils/session_provider.dart';
 import 'package:student_academic_assistant/models/session.dart';
-import 'package:student_academic_assistant/utils/constants.dart';
 
 class AddSessionScreen extends StatefulWidget {
-  const AddSessionScreen({super.key});
+  final Session? sessionToEdit;
+
+  const AddSessionScreen({super.key, this.sessionToEdit});
 
   @override
   State<AddSessionScreen> createState() => _AddSessionScreenState();
@@ -16,12 +17,43 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   final _locationController = TextEditingController();
   SessionType _type = SessionType.classSession;
 
-  // Time picker state
+  DateTime? _selectedDate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sessionToEdit != null) {
+      _titleController.text = widget.sessionToEdit!.title;
+      _locationController.text = widget.sessionToEdit!.location;
+      _type = widget.sessionToEdit!.sessionType;
+      _selectedDate = widget.sessionToEdit!.date;
+      final startParts = widget.sessionToEdit!.startTime.split(':');
+      final endParts = widget.sessionToEdit!.endTime.split(':');
+      _startTime = TimeOfDay(
+        hour: int.parse(startParts[0]),
+        minute: int.parse(startParts[1]),
+      );
+      _endTime = TimeOfDay(
+        hour: int.parse(endParts[0]),
+        minute: int.parse(endParts[1]),
+      );
+    }
+  }
+
   String _timeToString(TimeOfDay t) {
     return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) setState(() => _selectedDate = picked);
   }
 
   Future<void> _pickStartTime() async {
@@ -43,7 +75,11 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Session')),
+      appBar: AppBar(
+        title: Text(
+          widget.sessionToEdit != null ? 'Edit Session' : 'Add Session',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -57,18 +93,36 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
               decoration: const InputDecoration(labelText: 'Location'),
             ),
             const SizedBox(height: 12),
+            InkWell(
+              onTap: _pickDate,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Session Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                child: Text(
+                  _selectedDate == null
+                      ? 'Select date'
+                      : '${_selectedDate!.month}/${_selectedDate!.day}/${_selectedDate!.year}',
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
 
-            // Start/End time pickers
             Row(
               children: [
                 Expanded(
                   child: InkWell(
                     onTap: _pickStartTime,
                     child: InputDecorator(
-                      decoration: const InputDecoration(labelText: 'Start Time'),
-                      child: Text(_startTime == null
-                          ? 'Select time'
-                          : _timeToString(_startTime!)),
+                      decoration: const InputDecoration(
+                        labelText: 'Start Time',
+                      ),
+                      child: Text(
+                        _startTime == null
+                            ? 'Select time'
+                            : _timeToString(_startTime!),
+                      ),
                     ),
                   ),
                 ),
@@ -79,7 +133,10 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                     child: InputDecorator(
                       decoration: const InputDecoration(labelText: 'End Time'),
                       child: Text(
-                          _endTime == null ? 'Select time' : _timeToString(_endTime!)),
+                        _endTime == null
+                            ? 'Select time'
+                            : _timeToString(_endTime!),
+                      ),
                     ),
                   ),
                 ),
@@ -90,9 +147,18 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
             DropdownButton<SessionType>(
               value: _type,
               items: SessionType.values.map((type) {
+                final session = Session(
+                  id: '',
+                  title: '',
+                  sessionType: type,
+                  date: DateTime.now(),
+                  startTime: '',
+                  endTime: '',
+                  location: '',
+                );
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type.name),
+                  child: Text(session.typeLabel),
                 );
               }).toList(),
               onChanged: (value) {
@@ -114,32 +180,59 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
                   return;
                 }
 
-                // Validate times when both are chosen
                 if (_startTime != null && _endTime != null) {
-                  final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+                  final startMinutes =
+                      _startTime!.hour * 60 + _startTime!.minute;
                   final endMinutes = _endTime!.hour * 60 + _endTime!.minute;
                   if (endMinutes <= startMinutes) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('End time must be after start time')),
+                      const SnackBar(
+                        content: Text('End time must be after start time'),
+                      ),
                     );
                     return;
                   }
                 }
 
-                final startStr = _startTime != null ? _timeToString(_startTime!) : '10:00';
-                final endStr = _endTime != null ? _timeToString(_endTime!) : '12:00';
+                final startStr = _startTime != null
+                    ? _timeToString(_startTime!)
+                    : '10:00';
+                final endStr = _endTime != null
+                    ? _timeToString(_endTime!)
+                    : '12:00';
 
-                Provider.of<SessionProvider>(context, listen: false).addSession(
-                  Session(
-                    id: DateTime.now().toString(),
-                    title: _titleController.text,
-                    date: DateTime.now(),
-                    startTime: startStr,
-                    endTime: endStr,
-                    location: _locationController.text,
-                    sessionType: _type,
-                  ),
+                final sessionProvider = Provider.of<SessionProvider>(
+                  context,
+                  listen: false,
                 );
+
+                if (widget.sessionToEdit != null) {
+                  sessionProvider.updateSession(
+                    widget.sessionToEdit!.id,
+                    Session(
+                      id: widget.sessionToEdit!.id,
+                      title: _titleController.text,
+                      date: _selectedDate ?? widget.sessionToEdit!.date,
+                      startTime: startStr,
+                      endTime: endStr,
+                      location: _locationController.text,
+                      sessionType: _type,
+                      isPresent: widget.sessionToEdit!.isPresent,
+                    ),
+                  );
+                } else {
+                  sessionProvider.addSession(
+                    Session(
+                      id: DateTime.now().toString(),
+                      title: _titleController.text,
+                      date: _selectedDate ?? DateTime.now(),
+                      startTime: startStr,
+                      endTime: endStr,
+                      location: _locationController.text,
+                      sessionType: _type,
+                    ),
+                  );
+                }
 
                 Navigator.pop(context);
               },
@@ -149,5 +242,12 @@ class _AddSessionScreenState extends State<AddSessionScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _locationController.dispose();
+    super.dispose();
   }
 }

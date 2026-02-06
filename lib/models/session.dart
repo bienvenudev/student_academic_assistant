@@ -1,9 +1,4 @@
-enum SessionType {
-  classSession,
-  masterySession,
-  studyGroup,
-  pslMeeting,
-}
+enum SessionType { classSession, masterySession, studyGroup, pslMeeting }
 
 /// Model for an academic session (class, study group, meeting)
 class Session {
@@ -14,7 +9,7 @@ class Session {
   final String startTime;
   final String endTime;
   final String location;
-  bool? isPresent;
+  final bool? isPresent;
 
   Session({
     required this.id,
@@ -27,7 +22,6 @@ class Session {
     this.isPresent,
   });
 
-  /// Used for displaying session type as text
   String get typeLabel {
     switch (sessionType) {
       case SessionType.classSession:
@@ -41,7 +35,6 @@ class Session {
     }
   }
 
-  /// Copy session with modified fields (important for attendance)
   Session copyWith({
     String? id,
     String? title,
@@ -64,7 +57,6 @@ class Session {
     );
   }
 
-  /// Check if session is today
   bool isToday() {
     final now = DateTime.now();
     return date.year == now.year &&
@@ -72,7 +64,6 @@ class Session {
         date.day == now.day;
   }
 
-  /// Convert to JSON for persistence (optional extra credit)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -86,7 +77,6 @@ class Session {
     };
   }
 
-  /// Create session from JSON
   factory Session.fromJson(Map<String, dynamic> json) {
     return Session(
       id: json['id'],
@@ -101,11 +91,9 @@ class Session {
       isPresent: json['isPresent'],
     );
   }
-    /// Backwards compatibility for Dashboard
-  /// Allows dashboard to use session.type
+
   String get type => typeLabel;
 
-  /// Used by Dashboard to calculate attendance stats
   bool hasAttendanceRecorded() {
     return isPresent != null;
   }
