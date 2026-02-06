@@ -5,8 +5,7 @@ import 'package:student_academic_assistant/utils/constants.dart';
 
 class AssignmentsScreen extends StatefulWidget {
   final List<Assignment> assignments;
-  final VoidCallback?
-  onAssignmentsChanged; // Callback to notify parent of changes
+  final VoidCallback? onAssignmentsChanged;
 
   const AssignmentsScreen({
     super.key,

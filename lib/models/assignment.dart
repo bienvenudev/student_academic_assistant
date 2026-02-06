@@ -1,8 +1,3 @@
-/// Model class for Assignment
-/// 
-/// Represents a student assignment with title, due date, course, and priority.
-/// Used by Lists Specialist for displaying assignments
-/// and Forms Specialist for creating/editing assignments.
 class Assignment {
   final String id;
   final String title;
@@ -20,8 +15,6 @@ class Assignment {
     this.isCompleted = false,
   });
 
-  /// Convert Assignment to JSON for storage
-  /// Used by Member 5 (Data Specialist) when saving to shared_preferences
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -33,8 +26,6 @@ class Assignment {
     };
   }
 
-  /// Create Assignment from JSON when loading from storage
-  /// Used by Data Specialist when reading from shared_preferences
   factory Assignment.fromJson(Map<String, dynamic> json) {
     return Assignment(
       id: json['id'] as String,
@@ -46,8 +37,6 @@ class Assignment {
     );
   }
 
-  /// Create a copy of this assignment with some fields changed
-  /// Useful for marking assignments as completed or editing them
   Assignment copyWith({
     String? id,
     String? title,
@@ -66,15 +55,12 @@ class Assignment {
     );
   }
 
-  /// Check if assignment is due within the next 7 days
-  /// Used by Team Lead for Dashboard display
   bool isDueWithinSevenDays() {
     final now = DateTime.now();
     final difference = dueDate.difference(now).inDays;
     return difference >= 0 && difference <= 7;
   }
 
-  /// Check if assignment is overdue
   bool isOverdue() {
     return DateTime.now().isAfter(dueDate) && !isCompleted;
   }
