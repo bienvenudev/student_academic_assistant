@@ -46,12 +46,29 @@ class StorageService {
     final jsonString = _prefs.getString(_kAssignmentsKey);
     if (jsonString == null || jsonString.isEmpty) return [];
 
-    final decoded = jsonDecode(jsonString);
-    if (decoded is! List) return [];
+    try {
+      final decoded = jsonDecode(jsonString);
+      if (decoded is! List) return [];
 
-    return decoded
-        .map((item) => Assignment.fromJson(item as Map<String, dynamic>))
-        .toList();
+      // Filter out corrupted entries and handle parsing errors gracefully
+      return decoded
+          .where(
+            (item) => item is Map<String, dynamic>,
+          ) // Only process valid maps
+          .map<Assignment?>((item) {
+            try {
+              return Assignment.fromJson(item as Map<String, dynamic>);
+            } catch (e) {
+              // Skip corrupted entries instead of crashing
+              return null;
+            }
+          })
+          .whereType<Assignment>() // Remove nulls from failed parses
+          .toList();
+    } catch (e) {
+      // Handle JSON decode errors
+      return [];
+    }
   }
 
   // -------------------------
@@ -69,12 +86,29 @@ class StorageService {
     final jsonString = _prefs.getString(_kSessionsKey);
     if (jsonString == null || jsonString.isEmpty) return [];
 
-    final decoded = jsonDecode(jsonString);
-    if (decoded is! List) return [];
+    try {
+      final decoded = jsonDecode(jsonString);
+      if (decoded is! List) return [];
 
-    return decoded
-        .map((item) => Session.fromJson(item as Map<String, dynamic>))
-        .toList();
+      // Filter out corrupted entries and handle parsing errors gracefully
+      return decoded
+          .where(
+            (item) => item is Map<String, dynamic>,
+          ) // Only process valid maps
+          .map<Session?>((item) {
+            try {
+              return Session.fromJson(item as Map<String, dynamic>);
+            } catch (e) {
+              // Skip corrupted entries instead of crashing
+              return null;
+            }
+          })
+          .whereType<Session>() // Remove nulls from failed parses
+          .toList();
+    } catch (e) {
+      // Handle JSON decode errors
+      return [];
+    }
   }
 
   // -------------------------
@@ -146,7 +180,10 @@ class StorageService {
 
   Future<void> clearAll() async {
     _ensureInit();
-    await _prefs.remove(_kAssignmentsKey);
-    await _prefs.remove(_kSessionsKey);
+    // Run both removes in parallel for better performance
+    await Future.wait([
+      _prefs.remove(_kAssignmentsKey),
+      _prefs.remove(_kSessionsKey),
+    ]);
   }
 }
