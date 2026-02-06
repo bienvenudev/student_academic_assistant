@@ -5,7 +5,6 @@ import '../models/assignment.dart';
 import '../models/session.dart';
 
 class StorageService {
-  // Singleton
   static final StorageService _instance = StorageService._internal();
   factory StorageService() => _instance;
   StorageService._internal();
@@ -13,7 +12,6 @@ class StorageService {
   late SharedPreferences _prefs;
   bool _initialized = false;
 
-  // Keys
   static const String _kAssignmentsKey = 'assignments';
   static const String _kSessionsKey = 'sessions';
 
@@ -31,10 +29,6 @@ class StorageService {
     }
   }
 
-  // -------------------------
-  // Assignments: Save & Load
-  // -------------------------
-
   Future<void> saveAssignments(List<Assignment> assignments) async {
     _ensureInit();
     final jsonList = assignments.map((a) => a.toJson()).toList();
@@ -50,30 +44,21 @@ class StorageService {
       final decoded = jsonDecode(jsonString);
       if (decoded is! List) return [];
 
-      // Filter out corrupted entries and handle parsing errors gracefully
       return decoded
-          .where(
-            (item) => item is Map<String, dynamic>,
-          ) // Only process valid maps
+          .where((item) => item is Map<String, dynamic>)
           .map<Assignment?>((item) {
             try {
               return Assignment.fromJson(item as Map<String, dynamic>);
             } catch (e) {
-              // Skip corrupted entries instead of crashing
               return null;
             }
           })
-          .whereType<Assignment>() // Remove nulls from failed parses
+          .whereType<Assignment>()
           .toList();
     } catch (e) {
-      // Handle JSON decode errors
       return [];
     }
   }
-
-  // -------------------------
-  // Sessions: Save & Load
-  // -------------------------
 
   Future<void> saveSessions(List<Session> sessions) async {
     _ensureInit();
@@ -90,33 +75,22 @@ class StorageService {
       final decoded = jsonDecode(jsonString);
       if (decoded is! List) return [];
 
-      // Filter out corrupted entries and handle parsing errors gracefully
       return decoded
-          .where(
-            (item) => item is Map<String, dynamic>,
-          ) // Only process valid maps
+          .where((item) => item is Map<String, dynamic>)
           .map<Session?>((item) {
             try {
               return Session.fromJson(item as Map<String, dynamic>);
             } catch (e) {
-              // Skip corrupted entries instead of crashing
               return null;
             }
           })
-          .whereType<Session>() // Remove nulls from failed parses
+          .whereType<Session>()
           .toList();
     } catch (e) {
-      // Handle JSON decode errors
       return [];
     }
   }
 
-  // -------------------------
-  // CRUD helpers (optional but useful)
-  // These update lists + persist.
-  // -------------------------
-
-  // ASSIGNMENTS CRUD
   Future<List<Assignment>> addAssignment(
     List<Assignment> current,
     Assignment newAssignment,
@@ -145,7 +119,6 @@ class StorageService {
     return updated;
   }
 
-  // SESSIONS CRUD
   Future<List<Session>> addSession(
     List<Session> current,
     Session newSession,
@@ -174,13 +147,8 @@ class StorageService {
     return updated;
   }
 
-  // -------------------------
-  // Utilities (optional)
-  // -------------------------
-
   Future<void> clearAll() async {
     _ensureInit();
-    // Run both removes in parallel for better performance
     await Future.wait([
       _prefs.remove(_kAssignmentsKey),
       _prefs.remove(_kSessionsKey),
