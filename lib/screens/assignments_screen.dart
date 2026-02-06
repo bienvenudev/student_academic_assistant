@@ -5,7 +5,8 @@ import 'package:student_academic_assistant/utils/constants.dart';
 
 class AssignmentsScreen extends StatefulWidget {
   final List<Assignment> assignments;
-  final VoidCallback? onAssignmentsChanged; // Callback to notify parent of changes
+  final VoidCallback?
+  onAssignmentsChanged; // Callback to notify parent of changes
 
   const AssignmentsScreen({
     super.key,
@@ -24,51 +25,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
   String _selectedPriority = 'Medium';
   String? _editingAssignmentId;
 
-  static const bool _useMockData = true; // Debug flag
-
   @override
   void initState() {
     super.initState();
-    if (_useMockData && widget.assignments.isEmpty) {
-      _loadMockAssignments();
-    }
-  }
-
-  void _loadMockAssignments() {
-    final mockAssignments = [
-      Assignment(
-        id: '1',
-        title: 'Mathematics Problem Set',
-        dueDate: DateTime.now().add(const Duration(days: 3)),
-        course: 'Calculus I',
-        priority: 'High',
-      ),
-      Assignment(
-        id: '2',
-        title: 'Physics Lab Report',
-        dueDate: DateTime.now().add(const Duration(days: 5)),
-        course: 'Mechanics',
-        priority: 'Medium',
-      ),
-      Assignment(
-        id: '3',
-        title: 'Literature Essay',
-        dueDate: DateTime.now().add(const Duration(days: 7)),
-        course: 'English Literature',
-        priority: 'Low',
-        isCompleted: true,
-      ),
-      Assignment(
-        id: '4',
-        title: 'Programming Project',
-        dueDate: DateTime.now().subtract(const Duration(days: 1)),
-        course: 'Computer Science',
-        priority: 'High',
-      ),
-    ];
-
-    widget.assignments.addAll(mockAssignments);
-    _sortAssignments();
   }
 
   void _sortAssignments() {
@@ -89,8 +48,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       _titleController.text = assignmentToEdit.title;
       _courseController.text = assignmentToEdit.course;
       _selectedDueDate = assignmentToEdit.dueDate;
-      _selectedPriority =
-          assignmentToEdit.priority.isNotEmpty ? assignmentToEdit.priority : 'Medium';
+      _selectedPriority = assignmentToEdit.priority.isNotEmpty
+          ? assignmentToEdit.priority
+          : 'Medium';
     } else {
       _clearForm();
     }
@@ -108,14 +68,14 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               children: [
                 TextField(
                   controller: _titleController,
-                  decoration:
-                      const InputDecoration(labelText: 'Assignment Title*'),
+                  decoration: const InputDecoration(
+                    labelText: 'Assignment Title*',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _courseController,
-                  decoration:
-                      const InputDecoration(labelText: 'Course Name*'),
+                  decoration: const InputDecoration(labelText: 'Course Name*'),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -125,16 +85,16 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         ? ''
                         : DateFormat('MMM d, yyyy').format(_selectedDueDate!),
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Due Date*',
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: Icon(Icons.calendar_today),
                     hintText: 'Select Due Date',
                   ),
                   onTap: () async {
                     final picked = await showDatePicker(
                       context: context,
                       initialDate: _selectedDueDate ?? DateTime.now(),
-                      firstDate: assignmentToEdit?.dueDate ?? DateTime(2000),
+                      firstDate: DateTime(2000),
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
                     if (picked != null) {
@@ -145,13 +105,8 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedPriority,
-                  items: ['High', 'Medium', 'Low']
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(p),
-                        ),
-                      )
+                  items: priorityLevels
+                      .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                       .toList(),
                   onChanged: (value) =>
                       setStateDialog(() => _selectedPriority = value!),
@@ -176,6 +131,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
         ),
       ),
     );
+    _clearForm();
   }
 
   void _validateAndSaveAssignment() {
@@ -188,7 +144,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     }
 
     final assignment = Assignment(
-      id: _editingAssignmentId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id:
+          _editingAssignmentId ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
       course: course,
       dueDate: _selectedDueDate!,
@@ -197,8 +155,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
 
     setState(() {
       if (_editingAssignmentId != null) {
-        final index =
-            widget.assignments.indexWhere((a) => a.id == _editingAssignmentId);
+        final index = widget.assignments.indexWhere(
+          (a) => a.id == _editingAssignmentId,
+        );
         if (index != -1) widget.assignments[index] = assignment;
       } else {
         widget.assignments.add(assignment);
@@ -215,8 +174,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     setState(() {
       final index = widget.assignments.indexWhere((a) => a.id == id);
       if (index != -1) {
-        widget.assignments[index] =
-            widget.assignments[index].copyWith(isCompleted: !widget.assignments[index].isCompleted);
+        widget.assignments[index] = widget.assignments[index].copyWith(
+          isCompleted: !widget.assignments[index].isCompleted,
+        );
         _sortAssignments();
         widget.onAssignmentsChanged?.call();
       }
@@ -230,7 +190,10 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
         title: const Text('Delete Assignment?'),
         content: const Text('Are you sure you want to delete this assignment?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
               _deleteAssignment(id);
@@ -267,11 +230,11 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
   Color _priorityColor(String priority) {
     switch (priority) {
       case 'High':
-        return Colors.red;
+        return AppColors.warningRed;
       case 'Medium':
-        return Colors.orange;
+        return AppColors.aluOrange;
       case 'Low':
-        return Colors.green;
+        return AppColors.successGreen;
       default:
         return Colors.grey;
     }
@@ -290,7 +253,8 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                 return ListTile(
                   leading: Checkbox(
                     value: assignment.isCompleted,
-                    onChanged: (value) => _toggleAssignmentCompletion(assignment.id),
+                    onChanged: (value) =>
+                        _toggleAssignmentCompletion(assignment.id),
                   ),
                   title: Row(
                     children: [
@@ -298,8 +262,10 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         child: Text(
                           assignment.title,
                           style: TextStyle(
-                            color: assignment.isOverdue() && !assignment.isCompleted
-                                ? Colors.red
+                            color:
+                                assignment.isOverdue() &&
+                                    !assignment.isCompleted
+                                ? AppColors.warningRed
                                 : null,
                             decoration: assignment.isCompleted
                                 ? TextDecoration.lineThrough
@@ -308,23 +274,31 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: _priorityColor(assignment.priority),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           assignment.priority,
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   subtitle: Text(
-                      '${assignment.course} • ${DateFormat('MMM d').format(assignment.dueDate)}'),
-                  onTap: () => _showAssignmentDialog(assignmentToEdit: assignment),
+                    '${assignment.course} • ${DateFormat('MMM d').format(assignment.dueDate)}',
+                  ),
+                  onTap: () =>
+                      _showAssignmentDialog(assignmentToEdit: assignment),
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: AppColors.warningRed),
                     onPressed: () => _confirmDelete(assignment.id),
                   ),
                 );
