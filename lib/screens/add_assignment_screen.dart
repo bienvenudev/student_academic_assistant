@@ -14,10 +14,8 @@ class AddAssignmentScreen extends StatefulWidget {
 }
 
 class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  late TextEditingController _titleController;
-  late TextEditingController _courseController;
+  final _titleController = TextEditingController();
+  final _courseController = TextEditingController();
 
   DateTime? _selectedDueDate;
   String _selectedPriority = 'Medium';
@@ -26,21 +24,12 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
   void initState() {
     super.initState();
 
-    _titleController =
-        TextEditingController(text: widget.assignmentToEdit?.title ?? '');
-    _courseController =
-        TextEditingController(text: widget.assignmentToEdit?.course ?? '');
-
-    _selectedDueDate = widget.assignmentToEdit?.dueDate;
-    _selectedPriority =
-        widget.assignmentToEdit?.priority ?? 'Medium';
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _courseController.dispose();
-    super.dispose();
+    if (widget.assignmentToEdit != null) {
+      _titleController.text = widget.assignmentToEdit!.title;
+      _courseController.text = widget.assignmentToEdit!.course;
+      _selectedDueDate = widget.assignmentToEdit!.dueDate;
+      _selectedPriority = widget.assignmentToEdit!.priority;
+    }
   }
 
   Future<void> _pickDate() async {
@@ -50,28 +39,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-
-    if (picked != null) {
-      setState(() => _selectedDueDate = picked);
-    }
-  }
-
-  void _save() {
-    if (!_formKey.currentState!.validate() || _selectedDueDate == null) {
-      return;
-    }
-
-    final assignment = Assignment(
-      id: widget.assignmentToEdit?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text.trim(),
-      course: _courseController.text.trim(),
-      dueDate: _selectedDueDate!,
-      priority: _selectedPriority,
-      isCompleted: widget.assignmentToEdit?.isCompleted ?? false,
-    );
-
-    Navigator.pop(context, assignment);
+    if (picked != null) setState(() => _selectedDueDate = picked);
   }
 
   @override
@@ -84,82 +52,92 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Assignment Title*',
-                ),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Required' : null,
+        child: Column(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Assignment Title',
               ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _courseController,
-                decoration: const InputDecoration(
-                  labelText: 'Course Name*',
-                ),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Required' : null,
+            ),
+            TextField(
+              controller: _courseController,
+              decoration: const InputDecoration(
+                labelText: 'Course',
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 12),
 
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Due Date*'),
-                subtitle: Text(
+            InkWell(
+              onTap: _pickDate,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Due Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                child: Text(
                   _selectedDueDate == null
                       ? 'Select date'
-                      : DateFormat('MMM d, yyyy')
-                          .format(_selectedDueDate!),
+                      : DateFormat('MMM d, yyyy').format(_selectedDueDate!),
                 ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: _pickDate,
               ),
+            ),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-              DropdownButtonFormField<String>(
-                value: _selectedPriority,
-                items: priorityLevels
-                    .map(
-                      (p) => DropdownMenuItem(
-                        value: p,
-                        child: Text(p),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedPriority = v!),
-                decoration: const InputDecoration(labelText: 'Priority'),
-              ),
+            DropdownButton<String>(
+              value: _selectedPriority,
+              items: priorityLevels.map((p) {
+                return DropdownMenuItem(
+                  value: p,
+                  child: Text(p),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() => _selectedPriority = value!);
+              },
+            ),
 
-              const SizedBox(height: 24),
+            const Spacer(),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      child: const Text('Save'),
+            ElevatedButton(
+              onPressed: () {
+                if (_titleController.text.isEmpty ||
+                    _courseController.text.isEmpty ||
+                    _selectedDueDate == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill all required fields'),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  );
+                  return;
+                }
+
+                final assignment = Assignment(
+                  id: widget.assignmentToEdit?.id ??
+                      DateTime.now().millisecondsSinceEpoch.toString(),
+                  title: _titleController.text,
+                  course: _courseController.text,
+                  dueDate: _selectedDueDate!,
+                  priority: _selectedPriority,
+                  isCompleted:
+                      widget.assignmentToEdit?.isCompleted ?? false,
+                );
+
+                Navigator.pop(context, assignment);
+              },
+              child: const Text('Save Assignment'),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _courseController.dispose();
+    super.dispose();
   }
 }
