@@ -25,7 +25,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Schedule')),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryPurple,
+        backgroundColor: AppColors.accentYellow,
         onPressed: () {
           Navigator.push(
             context,
@@ -61,7 +61,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       : session.isPresent!
                       ? const Icon(
                           Icons.check_circle,
-                          color: AppColors.successGreen,
+                          color: AppColors.statusGreen,
                         )
                       : const Icon(Icons.cancel, color: AppColors.warningRed),
                   title: Text(session.title),
@@ -84,7 +84,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       IconButton(
                         icon: const Icon(
                           Icons.check,
-                          color: AppColors.successGreen,
+                          color: AppColors.statusGreen,
                         ),
                         tooltip: 'Mark as present',
                         onPressed: () {

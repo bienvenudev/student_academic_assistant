@@ -30,6 +30,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     super.initState();
   }
 
+  // Sort priority: incomplete first, then overdue, then by due date
   void _sortAssignments() {
     widget.assignments.sort((a, b) {
       if (!a.isCompleted && b.isCompleted) return -1;
@@ -235,9 +236,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
       case 'High':
         return AppColors.warningRed;
       case 'Medium':
-        return AppColors.aluOrange;
+        return AppColors.statusYellow;
       case 'Low':
-        return AppColors.successGreen;
+        return AppColors.statusGreen;
       default:
         return Colors.grey;
     }
