@@ -23,7 +23,7 @@ class StorageService {
   void _ensureInit() {
     if (!_initialized) {
       throw StateError(
-        'StorageService not initialized. Call await StorageService().init() in main() before runApp().',
+        'StorageService.init() must be called in main() before use',
       );
     }
   }

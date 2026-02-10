@@ -8,6 +8,7 @@ class SessionProvider with ChangeNotifier {
 
   List<Session> get sessions => _sessions;
 
+  // Prevents duplicate loads when widgets rebuild
   Future<void> loadSessions() async {
     if (_isLoaded) return;
     _sessions = await StorageService().loadSessions();
@@ -48,7 +49,8 @@ class SessionProvider with ChangeNotifier {
   double get attendancePercentage {
     final attended = _sessions.where((s) => s.isPresent != null).toList();
 
-    if (attended.isEmpty) return 0;
+    if (attended.isEmpty)
+      return 0; // Return 0 instead of 100 to avoid misleading percentage
 
     final presentCount = attended.where((s) => s.isPresent == true).length;
 

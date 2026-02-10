@@ -1,6 +1,5 @@
 enum SessionType { classSession, masterySession, studyGroup, pslMeeting }
 
-/// Model for an academic session (class, study group, meeting)
 class Session {
   final String id;
   final String title;

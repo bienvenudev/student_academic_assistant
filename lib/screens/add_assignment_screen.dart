@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:student_academic_assistant/models/assignment.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
 
@@ -56,15 +55,11 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
           children: [
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Assignment Title',
-              ),
+              decoration: const InputDecoration(labelText: 'Assignment Title'),
             ),
             TextField(
               controller: _courseController,
-              decoration: const InputDecoration(
-                labelText: 'Course',
-              ),
+              decoration: const InputDecoration(labelText: 'Course'),
             ),
             const SizedBox(height: 12),
 
@@ -88,10 +83,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
             DropdownButton<String>(
               value: _selectedPriority,
               items: priorityLevels.map((p) {
-                return DropdownMenuItem(
-                  value: p,
-                  child: Text(p),
-                );
+                return DropdownMenuItem(value: p, child: Text(p));
               }).toList(),
               onChanged: (value) {
                 setState(() => _selectedPriority = value!);
@@ -113,15 +105,16 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                   return;
                 }
 
+                // Return assignment to previous screen
                 final assignment = Assignment(
-                  id: widget.assignmentToEdit?.id ??
+                  id:
+                      widget.assignmentToEdit?.id ??
                       DateTime.now().millisecondsSinceEpoch.toString(),
                   title: _titleController.text,
                   course: _courseController.text,
                   dueDate: _selectedDueDate!,
                   priority: _selectedPriority,
-                  isCompleted:
-                      widget.assignmentToEdit?.isCompleted ?? false,
+                  isCompleted: widget.assignmentToEdit?.isCompleted ?? false,
                 );
 
                 Navigator.pop(context, assignment);

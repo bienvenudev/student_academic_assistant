@@ -56,12 +56,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primaryPurple.withOpacity(0.1),
+                color: AppColors.primaryNavy.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.calendar_today,
-                color: AppColors.primaryPurple,
+                color: AppColors.primaryNavy,
                 size: 32,
               ),
             ),
@@ -75,7 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     'Academic Week $weekNumber',
                     style: AppTextStyles.bodyText.copyWith(
-                      color: AppColors.primaryPurple,
+                      color: AppColors.primaryNavy,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -103,14 +103,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               decoration: BoxDecoration(
                 color: isLowAttendance
                     ? AppColors.warningRed.withOpacity(0.2)
-                    : AppColors.successGreen.withOpacity(0.1),
+                    : AppColors.statusGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 isLowAttendance ? Icons.warning : Icons.check_circle,
                 color: isLowAttendance
                     ? AppColors.warningRed
-                    : AppColors.successGreen,
+                    : AppColors.statusGreen,
                 size: 32,
               ),
             ),
@@ -128,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       fontWeight: FontWeight.bold,
                       color: isLowAttendance
                           ? AppColors.warningRed
-                          : AppColors.successGreen,
+                          : AppColors.statusGreen,
                     ),
                   ),
                   if (isLowAttendance)
@@ -162,14 +162,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Pending',
               pendingCount.toString(),
               Icons.assignment,
-              AppColors.primaryPurple,
+              AppColors.primaryNavy,
             ),
             Container(width: 1, height: 40, color: Colors.grey[300]),
             _buildStatColumn(
               'Overdue',
               overdueCount.toString(),
               Icons.warning,
-              AppColors.aluOrange,
+              AppColors.red,
             ),
           ],
         ),
@@ -265,10 +265,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.fuchsiaPink.withOpacity(0.1),
+            color: AppColors.accentYellow.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.school, color: AppColors.fuchsiaPink),
+          child: const Icon(Icons.school, color: AppColors.accentYellow),
         ),
         title: Text(session.title, style: AppTextStyles.heading3),
         subtitle: Text(
@@ -277,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         trailing: Chip(
           label: Text(session.type, style: const TextStyle(fontSize: 10)),
-          backgroundColor: AppColors.midnightBlue.withOpacity(0.1),
+          backgroundColor: AppColors.navy.withOpacity(0.1),
         ),
       ),
     );
@@ -294,13 +294,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isUrgent
-                ? AppColors.aluOrange.withOpacity(0.1)
-                : AppColors.primaryPurple.withOpacity(0.1),
+                ? AppColors.red.withOpacity(0.1)
+                : AppColors.primaryNavy.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             Icons.assignment,
-            color: isUrgent ? AppColors.aluOrange : AppColors.primaryPurple,
+            color: isUrgent ? AppColors.red : AppColors.primaryNavy,
           ),
         ),
         title: Text(assignment.title, style: AppTextStyles.heading3),
@@ -319,7 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   : '${daysUntilDue}d',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isUrgent ? AppColors.aluOrange : AppColors.midnightBlue,
+                color: isUrgent ? AppColors.red : AppColors.navy,
               ),
             ),
             if (assignment.priority.isNotEmpty)
@@ -330,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Calculate academic week number based on term start date
+  // Week calculation from term start date in constants
   int _calculateAcademicWeek(DateTime currentDate) {
     final difference = currentDate.difference(termStartDate).inDays;
     return (difference / 7).floor() + 1;
@@ -338,16 +338,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   double _calculateAttendancePercentage(List<Session> sessions) {
     if (sessions.isEmpty) {
-      return 100.0; // Default to 100% if no sessions
+      return 100.0; // Starting at 100% avoids confusing warnings before any sessions exist
     }
 
-    // Only count sessions that have attendance recorded
     final recordedSessions = sessions
         .where((s) => s.hasAttendanceRecorded())
         .toList();
 
     if (recordedSessions.isEmpty) {
-      return 100.0; // Default to 100% if no attendance recorded yet
+      return 100.0; // Don't penalize for unrecorded attendance
     }
 
     final presentCount = recordedSessions
