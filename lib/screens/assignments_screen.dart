@@ -20,17 +20,6 @@ class AssignmentsScreen extends StatefulWidget {
 }
 
 class _AssignmentsScreenState extends State<AssignmentsScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _courseController = TextEditingController();
-  DateTime? _selectedDueDate;
-  String _selectedPriority = 'Medium';
-  String? _editingAssignmentId;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
   // Sort priority: incomplete first, then overdue, then by due date
   void _sortAssignments() {
     widget.assignments.sort((a, b) {
@@ -42,9 +31,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     });
   }
 
-  Future<void> _navigateToAddAssignment({
-    Assignment? assignmentToEdit,
-  }) async {
+  Future<void> _navigateToAddAssignment({Assignment? assignmentToEdit}) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -153,7 +140,8 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         child: Text(
                           assignment.title,
                           style: TextStyle(
-                            color: assignment.isOverdue() &&
+                            color:
+                                assignment.isOverdue() &&
                                     !assignment.isCompleted
                                 ? AppColors.warningRed
                                 : null,
@@ -165,7 +153,9 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: _priorityColor(assignment.priority),
                           borderRadius: BorderRadius.circular(4),
@@ -173,20 +163,20 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
                         child: Text(
                           assignment.priority,
                           style: const TextStyle(
-                              color: Colors.white, fontSize: 12),
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   subtitle: Text(
-                    '${assignment.course} • ${DateFormat('MMM d').format(assignment.dueDate)}',
+                    '${assignment.course} • Due: ${DateFormat('EEE, MMM d, yyyy').format(assignment.dueDate)}',
                   ),
-                  onTap: () => _navigateToAddAssignment(
-                    assignmentToEdit: assignment,
-                  ),
+                  onTap: () =>
+                      _navigateToAddAssignment(assignmentToEdit: assignment),
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete,
-                        color: AppColors.warningRed),
+                    icon: const Icon(Icons.delete, color: AppColors.warningRed),
                     onPressed: () => _confirmDelete(assignment.id),
                   ),
                 );

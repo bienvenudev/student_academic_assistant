@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:student_academic_assistant/utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:student_academic_assistant/utils/session_provider.dart';
@@ -66,7 +67,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       : const Icon(Icons.cancel, color: AppColors.warningRed),
                   title: Text(session.title),
                   subtitle: Text(
-                    '${session.startTime} - ${session.endTime}\n${session.location}',
+                    '${DateFormat('EEE, MMM d, yyyy').format(session.date)} • ${session.startTime} - ${session.endTime}\n${session.location}',
                   ),
                   isThreeLine: true,
                   onTap: () {
